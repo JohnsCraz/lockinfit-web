@@ -6,6 +6,7 @@
 <meta name="robots" content="index, follow">
 <title>Terms of Service — LockIn</title>
 <meta name="description" content="LockIn Terms of Service. The rules for using LockIn, our coins, and LockIn Pro.">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
   :root {
     --text: #1a1a1a;
@@ -129,6 +130,88 @@
     .container { padding: 32px 20px 64px; }
     h1 { font-size: 28px; }
     h2 { font-size: 20px; margin-top: 36px; }
+  }
+
+  /* ── Pixel / Retro Theme ─────────────────────────────────────── */
+  body {
+    background: #111111;
+    color: #CCCCCC;
+    font-family: 'VT323', monospace;
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+    image-rendering: pixelated;
+  }
+
+  body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(17,17,17,0) 50%, rgba(0,0,0,0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 99999;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    color: #FFFFFF;
+    text-transform: uppercase;
+  }
+
+  h2, h3 {
+    font-family: 'Press Start 2P', monospace;
+    color: #FFFFFF;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
+  p, li {
+    font-family: 'VT323', monospace !important;
+    font-size: 18px !important;
+    color: #CCCCCC !important;
+    line-height: 1.8 !important;
+    letter-spacing: 0.06em !important;
+    margin-bottom: 20px;
+  }
+
+  /* Specific content links to avoid overwriting header navigation text colors */
+  p a, li a, .content a {
+    color: #FF7A00 !important;
+    text-decoration: underline;
+  }
+
+  /* Target legal placeholders like [INSERT LAUNCH DATE] */
+  .placeholder, [class*="placeholder"], [text*="INSERT"] {
+    color: #FF7A00 !important;
+    font-family: 'VT323', monospace !important;
+  }
+
+  nav, header {
+    font-family: 'Press Start 2P', monospace;
+  }
+
+  /* Transform only text links inside nav, preserving special arrow characters like '←' */
+  nav a, header a {
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #FFFFFF;
+  }
+
+  /* LockIn wordmark exclusive rules */
+  .wordmark, .logo, [class*="logo"] {
+    font-family: 'Press Start 2P', monospace !important;
+    color: #FFD700 !important;
+    text-transform: uppercase;
+  }
+
+  /* Short version card / any summary box */
+  .summary, .short-version, [class*="card"], [class*="summary"] {
+    border-radius: 0px !important;
+    border: 2px solid #FFFFFF !important;
+    box-shadow: none !important;
+    background: transparent !important;
   }
 </style>
 </head>
