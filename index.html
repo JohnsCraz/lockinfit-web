@@ -1,71 +1,440 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LockIn — Earn It</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #1a1512;
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 24px;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LockIn — Step Through. Work Smarter.</title>
+<link rel="icon" type="image/png" href="uploads/pasted-1779990506691-0.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  html, body, #root { height: 100%; }
+  body {
+    font-family: 'VT323', ui-monospace, monospace;
+    background: #000;
+    color: #fff;
+    margin: 0;
+    overflow: hidden;
+    /* Kill all anti-aliasing — pixels stay crisp */
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+    font-smooth: never;
+    text-rendering: optimizeSpeed;
+  }
+  img { image-rendering: pixelated; }
+
+  /* --- Background video --- */
+  .bg-video {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    pointer-events: none;
+  }
+  @media (min-width: 1024px) {
+    /* push the hovering lock toward the right column */
+    .bg-video { object-position: 68% center; }
+  }
+
+  /* --- Bottom blur overlay (no dark gradient — blur only) --- */
+  .bottom-blur {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    -webkit-mask-image: linear-gradient(to top, black 0%, transparent 45%);
+    mask-image: linear-gradient(to top, black 0%, transparent 45%);
+  }
+
+  /* --- CRT scanline overlay (sells the 8-bit look over the video) --- */
+  .crt-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 0px,
+      rgba(0,0,0,0) 2px,
+      rgba(0,0,0,0.16) 3px,
+      rgba(0,0,0,0.16) 4px
+    );
+    mix-blend-mode: multiply;
+  }
+
+  /* --- Retro pixel-menu frame (sharp 90° corners, solid border, hard shadow) --- */
+  .pixel-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0;
+    border: 3px solid #ffffff;
+    background: rgba(0, 0, 0, 0.55);
+    color: #ffffff;
+    cursor: pointer;
+    image-rendering: pixelated;
+    box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.65);
+    transition: transform 80ms steps(2, end), box-shadow 80ms steps(2, end), background 120ms steps(2, end);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .pixel-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translate(-1px, -1px);
+    box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 0.65);
+  }
+  .pixel-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 0 rgba(0, 0, 0, 0.65);
+  }
+  /* light variant — App Store badge */
+  .pixel-btn--light {
+    background: #ffffff;
+    border-color: #000000;
+    color: #000000;
+    box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.85);
+  }
+  .pixel-btn--light:hover {
+    background: #f1f1f1;
+    box-shadow: 6px 6px 0 0 rgba(0, 0, 0, 0.85);
+  }
+  .pixel-btn--light:active {
+    box-shadow: 1px 1px 0 0 rgba(0, 0, 0, 0.85);
+  }
+
+  /* --- Pixel reveal animation (no blur — stepped, crisp) --- */
+  @keyframes pixelRise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
     }
-    .coin { font-size: 48px; margin-bottom: 24px; }
-    h1 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      margin-bottom: 16px;
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
-    .tagline {
-      font-size: 15px;
-      color: #8E8E93;
-      max-width: 320px;
-      line-height: 1.6;
-      margin-bottom: 48px;
-    }
-    .tagline span { color: #FFD700; font-weight: 600; }
-    .coming-soon {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #8E8E93;
-      border: 1px solid #2a2018;
-      padding: 8px 20px;
-      border-radius: 20px;
-      margin-bottom: 48px;
-    }
-    footer {
-      position: fixed;
-      bottom: 24px;
-      font-size: 12px;
-      color: #555;
-    }
-    footer a { color: #555; text-decoration: none; margin: 0 12px; }
-    footer a:hover { color: #8E8E93; }
-  </style>
+  }
+  .animate-blur-fade-up {
+    opacity: 0;
+    animation: pixelRise 360ms steps(6, end) forwards;
+  }
+
+  /* --- Arcade-cabinet pulse for the punchline --- */
+  @keyframes pixelPulse {
+    0%, 100% { transform: scale(1); text-shadow: 0 0 0 rgba(255,255,255,0); }
+    50% { transform: scale(1.04); text-shadow: 0 0 18px rgba(255,255,255,0.45); }
+  }
+  .pixel-pulse {
+    display: inline-block;
+    animation: pixelPulse 2s infinite ease-in-out;
+    transform-origin: left center;
+  }
+
+  /* Pixel display font — headings, wordmark, nav */
+  .pixel {
+    font-family: 'Press Start 2P', ui-monospace, monospace;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+  }
+  /* Readable pixel body font */
+  .pixel-body {
+    font-family: 'VT323', ui-monospace, monospace;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+  }
+</style>
 </head>
 <body>
-  <div class="coin">🔒</div>
-  <h1>LockIn</h1>
-  <p class="tagline">
-    You can't buy muscles.<br>
-    And you can't buy our coins.<br>
-    <span>Earn it.</span>
-  </p>
-  <div class="coming-soon">Coming Soon</div>
-  <footer>
-    <a href="/privacy">Privacy Policy</a>
-    <a href="/terms">Terms of Service</a>
-    <a href="mailto:privacy@lockinfit.app">Contact</a>
-  </footer>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState } = React;
+// Inline SVG icon components (Lucide icon paths)
+const Icon = ({ size = 24, fill = "none", stroke = "currentColor", className = "", children, ...rest }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke={stroke}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...rest}
+  >
+    {children}
+  </svg>
+);
+const Search = (p) => <Icon {...p}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></Icon>;
+const User = (p) => <Icon {...p}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></Icon>;
+const Menu = (p) => <Icon {...p}><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></Icon>;
+const X = (p) => <Icon {...p}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>;
+const Star = (p) => <Icon {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></Icon>;
+const Clock = (p) => <Icon {...p}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></Icon>;
+const Calendar = (p) => <Icon {...p}><path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" /></Icon>;
+const Play = (p) => <Icon {...p}><polygon points="6 3 20 12 6 21 6 3" /></Icon>;
+const ChevronLeft = (p) => <Icon {...p}><path d="m15 18-6-6 6-6" /></Icon>;
+const ChevronRight = (p) => <Icon {...p}><path d="m9 18 6-6-6-6" /></Icon>;
+const Apple = (p) => <Icon {...p}><path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.493-.12-1.06.396-2.2 1.027-2.94.704-.81 1.99-1.42 3.137-1.633zM21.5 17.27c-.572 1.33-.846 1.929-1.583 3.106-1.028 1.643-2.475 3.687-4.27 3.704-1.595.016-2.006-1.04-4.17-1.029-2.165.013-2.616 1.046-4.211 1.03-1.795-.017-3.166-1.86-4.193-3.502-2.873-4.585-3.176-9.972-1.402-12.836 1.262-2.036 3.252-3.225 5.124-3.225 1.905 0 3.103 1.046 4.682 1.046 1.532 0 2.464-1.048 4.667-1.048 1.665 0 3.43.908 4.687 2.477-4.118 2.256-3.449 8.139.669 10.277z"/></Icon>;
+
+// Custom kettlebell-shaped lock icon — white outline (hollow), brand color stays in the ambient glow
+const LockIcon = ({ size = 18, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#ffffff"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    {/* Bell-shaped body — outlined */}
+    <path d="M12 8 C 18 8 20.6 11 20.6 15.4 C 20.6 19.4 17.2 22 12 22 C 6.8 22 3.4 19.4 3.4 15.4 C 3.4 11 6 8 12 8 Z" />
+    {/* Shackle — two arcs leaving a clean split at the absolute top */}
+    <path d="M8.6 8.2 A 3.4 3.4 0 0 1 10.1 3.4" />
+    <path d="M15.4 8.2 A 3.4 3.4 0 0 0 13.9 3.4" />
+    {/* Keyhole — outlined */}
+    <circle cx="12" cy="14.2" r="1.4" />
+    <path d="M11.2 14.9 L 12.8 14.9 L 12.45 18.2 L 11.55 18.2 Z" />
+  </svg>
+);
+
+function App() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const navLinks = [
+    { label: "Privacy Policy", href: "/privacy/", delay: 100 },
+    { label: "Terms of Service", href: "/terms/", delay: 150 },
+    { label: "Contact", delay: 200 },
+  ];
+
+  return (
+    <div className="relative w-full h-full overflow-hidden bg-black">
+      {/* Background video */}
+      <video
+        className="bg-video"
+        autoPlay
+        loop
+        muted
+        playsInline
+        src="hero.mp4"
+      />
+
+      {/* Bottom blur overlay — blur only, no darkening */}
+      <div className="bottom-blur"></div>
+
+      {/* CRT scanlines */}
+      <div className="crt-overlay"></div>
+
+      {/* Left legibility scrim — keeps the headline readable over the fire, fades out toward the lock */}
+      <div
+        className="hidden lg:block fixed inset-y-0 left-0 w-3/5 z-[2] pointer-events-none"
+        style={{ background: "linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 40%, transparent 75%)" }}
+      ></div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* Chrome + two-column hero                                       */}
+      {/* ------------------------------------------------------------- */}
+
+      {/* TOP-LEFT — wordmark */}
+      <div
+        className="fixed top-8 left-6 md:left-10 z-50 flex items-center h-7 animate-blur-fade-up"
+        style={{ animationDelay: "0ms" }}
+      >
+        <span className="pixel text-white text-sm md:text-base tracking-[0.12em] select-none">
+          LOCKIN
+        </span>
+      </div>
+
+      {/* TOP-RIGHT — nav links (desktop) / hamburger (mobile) */}
+      <div className="fixed top-8 right-6 md:right-10 z-50 flex items-center h-7">
+        <nav className="hidden lg:flex items-center gap-10">
+          {navLinks.map((l) => (
+            <a
+              key={l.label}
+              href={l.href || "#"}
+              className="animate-blur-fade-up pixel text-[11px] text-white/85 hover:text-white transition-colors"
+              style={{ animationDelay: `${l.delay}ms` }}
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
+
+        {/* Hamburger */}
+        <button
+          className="pixel-btn animate-blur-fade-up lg:hidden flex items-center justify-center w-11 h-11 relative"
+          style={{ animationDelay: "350ms" }}
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label="Menu"
+        >
+          <span
+            className="absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out"
+            style={{
+              opacity: menuOpen ? 0 : 1,
+              transform: menuOpen ? "rotate(180deg) scale(0.5)" : "rotate(0deg) scale(1)",
+            }}
+          >
+            <Menu size={18} />
+          </span>
+          <span
+            className="absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out"
+            style={{
+              opacity: menuOpen ? 1 : 0,
+              transform: menuOpen ? "rotate(0deg) scale(1)" : "rotate(-180deg) scale(0.5)",
+            }}
+          >
+            <X size={18} />
+          </span>
+        </button>
+      </div>
+
+      {/* Mobile menu — slides down beneath the top-right hamburger */}
+      <div
+        className={`lg:hidden fixed left-6 right-6 z-40 transition-all duration-500 ease-out ${
+          menuOpen
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-4 opacity-0 pointer-events-none"
+        }`}
+        style={{ top: "88px" }}
+      >
+        <div className="bg-black/90 backdrop-blur-lg border-[3px] border-white shadow-[4px_4px_0_0_rgba(0,0,0,0.65)] overflow-hidden">
+          <div className="flex flex-col p-2">
+            {navLinks.map((l, i) => (
+              <a
+                key={l.label}
+                href={l.href || "#"}
+                className="pixel py-3 px-3 hover:bg-white/10 text-[11px] text-white/90 transition-all duration-300 ease-out"
+                style={{
+                  transitionDelay: menuOpen ? `${i * 50}ms` : "0ms",
+                  transform: menuOpen ? "translateX(0)" : "translateX(-12px)",
+                  opacity: menuOpen ? 1 : 0,
+                }}
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN — two-column hero (left text · right visual) */}
+      <main className="relative z-10 h-full w-full flex items-center px-6 md:px-10">
+        <div className="grid w-full grid-cols-1 lg:grid-cols-[45fr_55fr] items-center gap-12">
+          {/* LEFT COLUMN — typography + CTAs */}
+          <div className="w-full lg:max-w-[35%] pt-20 lg:pt-0">
+            <div className="animate-blur-fade-up" style={{ animationDelay: "250ms" }}>
+              <p className="pixel text-[14px] leading-[1.6] text-white/85 mb-2">
+                You can't buy muscles.
+              </p>
+              <p className="pixel text-[14px] leading-[1.6] mb-6" style={{ color: "#FF7A00" }}>
+                And you can't buy our coins.
+              </p>
+              <h1 className="pixel text-white text-[44px]" style={{ lineHeight: 1.2, padding: "6px 0" }}>
+                <span className="pixel-pulse">Earn it.</span>
+              </h1>
+            </div>
+
+            <div className="flex flex-wrap items-stretch gap-4" style={{ marginTop: "36px" }}>
+              <a
+                href="#"
+                className="pixel-btn pixel-btn--light animate-blur-fade-up gap-3 px-5 py-2.5"
+                style={{ animationDelay: "460ms" }}
+                aria-label="Download on the App Store"
+              >
+                <Apple size={24} fill="black" stroke="black" />
+                <span className="flex flex-col leading-none text-left">
+                  <span className="pixel text-[7px] tracking-wide opacity-70">Download on the</span>
+                  <span className="pixel text-[12px] mt-1.5">App Store</span>
+                </span>
+              </a>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN — visual breathing room; the 3D lock hovers here in the video */}
+          <div className="hidden lg:block" aria-hidden="true"></div>
+        </div>
+      </main>
+
+      {/* BOTTOM-RIGHT — social cluster */}
+      <SocialCluster />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------
+// SocialCluster — fixed bottom-right TikTok + Instagram links
+// ---------------------------------------------------------------
+function SocialButton({ href, label, color }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className="social-link pixel-btn group gap-1.5 px-3 py-2 text-white pixel text-[8px]"
+      style={{
+        // Ambient color glow only shows on hover — keep both shadows so transition reads
+        boxShadow: `4px 4px 0 0 rgba(0,0,0,0.65)`,
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = `6px 6px 0 0 rgba(0,0,0,0.65), 0 0 18px -2px ${color}aa`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = `4px 4px 0 0 rgba(0,0,0,0.65)`;
+      }}
+    >
+      <LockIcon
+        size={15}
+        className="transition-transform duration-300 ease-out group-hover:scale-110"
+      />
+      <span>{label}</span>
+    </a>
+  );
+}
+
+function SocialCluster() {
+  return (
+    <div
+      className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-50 flex flex-row items-center gap-3 animate-blur-fade-up"
+      style={{ animationDelay: "800ms" }}
+    >
+      <SocialButton
+        href="https://www.tiktok.com/@LockInFitApp"
+        label="TikTok"
+        color="#EE1D52"
+      />
+      <SocialButton
+        href="https://www.instagram.com/LockInFit"
+        label="Instagram"
+        color="#F56040"
+      />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
 </body>
 </html>
